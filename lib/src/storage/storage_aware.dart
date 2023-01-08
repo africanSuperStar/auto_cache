@@ -3,12 +3,12 @@ import 'package:auto_cache/src/library/entry_failure.dart';
 import 'package:auto_cache/src/library/expiry.dart';
 import 'package:flutter/foundation.dart';
 
-abstract class IStorageAware<Value> {
+abstract class IStorageAware<Value> extends Object {
   /// Get all keys in the storage
-  late final List<Key?> allKeys;
+  List<Key?> get allKeys;
 
   /// Get all objects from the storage
-  late final List<Value?> allObjects;
+  Iterable<Value?> get allObjects;
 
   /// Tries to retrieve the object from the storage.
   /// - Parameter key: Unique key to identify the object in the cache
@@ -45,9 +45,13 @@ abstract class IStorageAware<Value> {
   bool isExpiredObject(Key key);
 }
 
-mixin StorageAware<Value> on IStorageAware {
+mixin StorageAwareMixin<Value> on IStorageAware {
   @override
-  Value? object(Key key) {
+  Value? object(Key? key) {
+    if (key == null) {
+      throw const EntryFailure.invalidKey();
+    }
+
     try {
       return super.entry(key).object;
     } finally {

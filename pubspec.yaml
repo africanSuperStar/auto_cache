@@ -16,6 +16,9 @@ dependencies:
   json_annotation: ^4.7.0
   equatable: ^2.0.5
 
+  # For Platform Specific Key-Value Storage
+  shared_preferences: ^2.0.15
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
