@@ -45,4 +45,9 @@ class Expiry {
       );
     }
   }
+
+  /// Checks if cached object is expired according to expiration date
+  bool get isExpired {
+    return DateTime.now().isBefore(_value);
+  }
 }
