@@ -12,7 +12,7 @@ class Expiry {
   late final dynamic _value;
 
   /// Object will be expired in the nearest future
-  Option<ExpiryFailure, DateTime> get never {
+  static Option<ExpiryFailure, DateTime> get never {
     return Option.success(
       value: DateTime.fromMillisecondsSinceEpoch(60 * 60 * 24 * 365 * 68),
     );
