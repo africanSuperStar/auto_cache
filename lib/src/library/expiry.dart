@@ -1,15 +1,18 @@
 import 'package:auto_cache/src/library/expiry_failure.dart';
 import 'package:auto_cache/src/library/option.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'expiry.freezed.dart';
+part 'expiry.g.dart';
 
 /// Helper class to set the expiration date
-class Expiry {
-  Expiry._({required dynamic value});
+@freezed
+class Expiry<T> with _$Expiry<T> {
+  Expiry._();
 
-  factory Expiry.from(dynamic value) {
-    return Expiry._(value: value);
-  }
+  factory Expiry.from(dynamic value) = _FromValue;
 
-  late final dynamic _value;
+  factory Expiry.fromJson(Map<String, Object?> json) => _$ExpiryFromJson(json);
 
   /// Object will be expired in the nearest future
   static Option<ExpiryFailure, DateTime> get never {
@@ -23,7 +26,7 @@ class Expiry {
     try {
       return Option.success(
         value: DateTime.now().add(
-          Duration(seconds: _value),
+          Duration(seconds: value),
         ),
       );
     } catch (e) {
@@ -37,7 +40,7 @@ class Expiry {
   /// Object will be expired on the specified date
   Option<ExpiryFailure, DateTime> get dateTime {
     try {
-      return Option.success(value: _value);
+      return Option.success(value: value);
     } catch (e) {
       return Option.failure(
         failure: const ExpiryFailure.failedToCastType(),
@@ -48,6 +51,6 @@ class Expiry {
 
   /// Checks if cached object is expired according to expiration date
   bool get isExpired {
-    return DateTime.now().isBefore(_value);
+    return DateTime.now().isBefore(value);
   }
 }

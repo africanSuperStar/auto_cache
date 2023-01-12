@@ -6,14 +6,14 @@ class Entry<T> {
   final T object;
 
   /// Expiry date
-  final Expiry expiry;
+  final Expiry? expiry;
 
   /// File path to the cached object
   final String? filePath;
 
   const Entry(
     this.object, {
-    required this.expiry,
-    required this.filePath,
+    this.expiry,
+    this.filePath,
   });
 }
