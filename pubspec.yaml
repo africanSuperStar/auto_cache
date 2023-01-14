@@ -20,6 +20,9 @@ dependencies:
   # For Platform Specific Key-Value Storage
   shared_preferences: ^2.0.15
 
+  # For Background Tasks
+  workmanager: ^0.5.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

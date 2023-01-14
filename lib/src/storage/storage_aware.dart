@@ -13,7 +13,7 @@ mixin IStorageAwareMixin<Value> {
   /// Get cache entry which includes object with metadata.
   /// - Parameter key: Unique key to identify the object in the cache
   /// - Returns: Object wrapper with metadata or nil if not found
-  Future<Entry<Value>> entry(UniqueKey key);
+  Future<Entry<Value>?> entry(UniqueKey key);
 
   /// Removes the object by the given key.
   /// - Parameter key: Unique key to identify the object.
@@ -44,7 +44,7 @@ extension StorageAwareExtension<Value> on StorageAwareMixin<Value> {
     }
 
     try {
-      return (await entry(key)).object;
+      return (await entry(key))?.object;
     } finally {
       throw const EntryFailure.invalidKey();
     }
@@ -66,7 +66,7 @@ extension StorageAwareExtension<Value> on StorageAwareMixin<Value> {
   Future<bool?> isExpiredObject(UniqueKey key) async {
     try {
       final entry = this.entry(key);
-      return (await entry).expiry?.isExpired;
+      return (await entry)?.expiry?.isExpired;
     } catch (_) {
       return true;
     }
