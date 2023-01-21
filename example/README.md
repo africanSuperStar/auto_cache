@@ -2,15 +2,16 @@
 
 Demonstrates how to use the auto_cache plugin.
 
-## Getting Started
+## Platform Setup
 
-This project is a starting point for a Flutter application.
+---
 
-A few resources to get you started if this is your first Flutter project:
+In order for background work to be scheduled correctly you should follow the Android and iOS setup first.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+* [Android Setup](https://github.com/fluttercommunity/flutter_workmanager/blob/master/ANDROID_SETUP.md)
+* [iOS Setup](https://github.com/fluttercommunity/flutter_workmanager/blob/master/IOS_SETUP.md)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## How to use the package?
+
+See `example` folder for a complete working example.
+

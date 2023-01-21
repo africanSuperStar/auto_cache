@@ -4,6 +4,7 @@ import 'package:auto_cache/src/config/memory_config.dart';
 import 'package:auto_cache/src/library/expiry.dart';
 import 'package:auto_cache/src/library/entry.dart';
 import 'package:auto_cache/src/library/memory_capsule.dart';
+import 'package:auto_cache/src/storage/background/background_callback_dispatcher.dart';
 import 'package:auto_cache/src/storage/storage_aware.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -17,8 +18,8 @@ abstract class IBackgroundMemoryStorage<Hashable, Value>
   /// Configuration
   late final MemoryConfig _config;
 
-  /// Background Work Manager
-  final workManager = Workmanager();
+  /// Dynamic Mapped Input Data
+  Map<String, dynamic> inputData = {};
 
   /// Background Tasks
   static const allObjectsTaskKey =
@@ -28,89 +29,88 @@ abstract class IBackgroundMemoryStorage<Hashable, Value>
   static const entryTaskKey =
       "dev.auto_cache.backgroundMemoryStorage.entryTask";
 
+  /// Background Work Manager
+  final workManager = Workmanager();
+
   @override
   List<UniqueKey?> get allKeys => _keys.toList();
 
+  IBackgroundMemoryStorage._() {
+    workManager.initialize(callbackDispatcher);
+
+    workManager.registerOneOffTask(
+      allObjectsTaskKey,
+      'allObjects',
+      constraints: Constraints(
+        requiresStorageNotLow: true,
+        networkType: NetworkType.not_required,
+      ),
+    );
+
+    workManager.registerOneOffTask(
+      capsuleTaskKey,
+      'capsule',
+      constraints: Constraints(
+        requiresStorageNotLow: true,
+        networkType: NetworkType.not_required,
+      ),
+      inputData: {
+        'key': 12,
+      },
+    );
+  }
+
   @override
-  @pragma('vm:entry-point')
   Future<Iterable<Value?>> get allObjects async {
     var objects = <Value?>[];
 
-    workManager.executeTask((task, inputData) async {
-      switch (task) {
-        case allObjectsTaskKey:
-          for (var key in allKeys) {
-            objects.add(await object(key));
-          }
-          break;
-      }
-
-      return Future.value(true);
-    });
+    for (var key in allKeys) {
+      objects.add(await object(key));
+    }
 
     return Future.value(objects);
   }
 
-  @pragma('vm:entry-point')
   Future<MemoryCapsule?> capsule({UniqueKey? forKey}) async {
+    inputData = {'capsuleKey0': forKey.toString()};
+
     late MemoryCapsule? capsule;
 
-    workManager.executeTask((task, inputData) async {
-      switch (task) {
-        case capsuleTaskKey:
-          final preferences = await SharedPreferences.getInstance();
-          final capsuleJson = preferences.getString(forKey.toString());
-          capsule = MemoryCapsule.fromJson(jsonDecode(capsuleJson ?? ''));
-          break;
-      }
-
-      return Future.value(true);
-    });
+    final preferences = await SharedPreferences.getInstance();
+    final capsuleJson = preferences.getString(forKey.toString());
+    capsule = MemoryCapsule.fromJson(json.decode(capsuleJson ?? '{}'));
 
     return Future.value(capsule);
   }
 
   @override
-  @pragma('vm:entry-point')
   Future<Entry<Value>?> entry(UniqueKey key) async {
+    inputData = {'entryKey0': key};
+
     late MemoryCapsule? capsule;
 
-    workManager.executeTask((task, inputData) async {
-      switch (task) {
-        case entryTaskKey:
-          capsule = await this.capsule(forKey: key);
-          break;
-      }
-
-      return Future.value(true);
-    });
+    capsule = await this.capsule(forKey: key);
 
     return Entry(capsule?.object, expiry: capsule?.expiry);
   }
 
   @override
-  @pragma('vm:entry-point')
-  Future<void> removeAll() async {
-    workManager.executeTask((task, inputData) async {
-      final preferences = await SharedPreferences.getInstance();
-      return preferences.clear();
-    });
+  Future<bool> removeAll() async {
+    final preferences = await SharedPreferences.getInstance();
+    return preferences.clear();
   }
 
   @override
-  @pragma('vm:entry-point')
   Future<void> removeExpiredObjects() async {
-    workManager.executeTask((task, inputData) async {
-      final allKeys = _keys;
-      for (var key in allKeys) {
-        removeObjectIfExpired(key: key);
-      }
-
-      return Future.value(true);
-    });
+    final allKeys = _keys;
+    for (var key in allKeys) {
+      removeObjectIfExpired(key: key);
+    }
   }
 
   Future<void> removeObjectIfExpired({required UniqueKey key}) async {
+    inputData = {'removeObjectIfExpiredKey0': key};
+
     final capsule = await this.capsule(forKey: key);
     if (capsule?.expiry?.isExpired ?? true) {
       removeObject(key);
@@ -118,14 +118,11 @@ abstract class IBackgroundMemoryStorage<Hashable, Value>
   }
 
   @override
-  @pragma('vm:entry-point')
   Future<void> removeObject(UniqueKey key) async {
-    workManager.executeTask((task, inputData) async {
-      final preferences = await SharedPreferences.getInstance();
-      preferences.remove(key.toString());
+    inputData = {'removeObjectKey0': key};
 
-      return Future.value(_keys.remove(key));
-    });
+    final preferences = await SharedPreferences.getInstance();
+    preferences.remove(key.toString());
   }
 
   @override
@@ -149,4 +146,6 @@ abstract class IBackgroundMemoryStorage<Hashable, Value>
 }
 
 class BackgroundMemoryStorage<Hashable, Value>
-    extends IBackgroundMemoryStorage<Hashable, Value> {}
+    extends IBackgroundMemoryStorage<Hashable, Value> {
+  BackgroundMemoryStorage() : super._();
+}

@@ -16,7 +16,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  String _platformVersion = 'Unknown';
+  String _platformValue = 'Unknown';
   final _autoCachePlugin = AutoCache();
 
   @override
@@ -27,14 +27,16 @@ class _MyAppState extends State<MyApp> {
 
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
-    String platformVersion;
+    final key = UniqueKey();
+    String platformValue;
     // Platform messages may fail, so we use a try/catch PlatformException.
     // We also handle the message potentially returning null.
     try {
-      platformVersion =
-          await _autoCachePlugin.getPlatformVersion() ?? 'Unknown platform version';
+      await _autoCachePlugin.setObject(12, key);
+
+      platformValue = (await _autoCachePlugin.entry(key))?.object;
     } on PlatformException {
-      platformVersion = 'Failed to get platform version.';
+      platformValue = 'Failed to get platform version.';
     }
 
     // If the widget was removed from the tree while the asynchronous platform
@@ -43,7 +45,7 @@ class _MyAppState extends State<MyApp> {
     if (!mounted) return;
 
     setState(() {
-      _platformVersion = platformVersion;
+      _platformValue = platformValue;
     });
   }
 
@@ -55,7 +57,7 @@ class _MyAppState extends State<MyApp> {
           title: const Text('Plugin example app'),
         ),
         body: Center(
-          child: Text('Running on: $_platformVersion\n'),
+          child: Text('Running on: $_platformValue\n'),
         ),
       ),
     );
